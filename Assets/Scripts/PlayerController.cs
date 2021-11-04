@@ -4,14 +4,9 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] private GameObject player;
     [SerializeField] private float speedPlayer;
-    [SerializeField] private float speedToRotate = 1;
-    private bool isCamera1 = true;
-    private bool isCamera2 = false;
-    private bool isCamera3 = false;
-    private bool resetpos = false;
-
+    private float timer = 0;
+    private int randomPos;
     // Start is called before the first frame update
     void Start()
     {
@@ -21,105 +16,35 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        ControllerPlayer();
+        MovePlayer();
+        //Debug.Log(timer);
+    }
+
+    private void MovePlayer()
+    {
+        float axisX = Input.GetAxis("Horizontal");
+        float axisZ = Input.GetAxis("Vertical");
+        transform.Translate(new Vector3(-axisZ, 0, axisX) * speedPlayer * Time.deltaTime);
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        Debug.Log(collision.gameObject.name);
         
     }
-
-    private void ControllerPlayer()
+    private void OnCollisionStay(Collision collision)
     {
-        if(Input.GetKeyDown(KeyCode.F1))
+        Vector3 wallRandPosition = new Vector3(Random.Range(-5, 5), 2, Random.Range(-5, 5));
+        Vector3 wallRandRotation = new Vector3(0, Random.Range(0, 360), 0);
+        if (collision.gameObject.name == "Wall")
         {
-            isCamera1 = true;
-            isCamera2 = false;
-            isCamera3 = false;
-            resetpos = true;
-        }
-        else if(Input.GetKeyDown(KeyCode.F2))
-        {
-            isCamera1 = false;
-            isCamera2 = true;
-            isCamera3 = false;
-            resetpos = true;
-        }
-        else if(Input.GetKeyDown(KeyCode.F3))
-        {
-            isCamera1 = false;
-            isCamera2 = false;
-            isCamera3 = true;
-            resetpos = true;
-        }
-
-        float axisHorizontal = Input.GetAxisRaw("Horizontal");
-        if (isCamera1)
-        {
-            if (resetpos)
+            timer += Time.deltaTime;
+            if (timer > 2f)
             {
-                player.transform.localRotation = Quaternion.AngleAxis(90, Vector3.up);
-                resetpos = false;
-            }
-            MovePlayerX2D(axisHorizontal);
-        } 
-        else if (isCamera2)
-        {
-            if (resetpos)
-            {
-                player.transform.localRotation = Quaternion.AngleAxis(90, Vector3.up);
-                resetpos = false;
-            }
-            MovePlayerZ2D(axisHorizontal); 
-        }
-        else if (isCamera3)
-        {
-            if (resetpos)
-            {
-                player.transform.localRotation = Quaternion.AngleAxis(90, Vector3.up);
-                transform.localRotation = Quaternion.AngleAxis(0, Vector3.up);
-                resetpos = false;
-            }
-            /*float axisVertical = Input.GetAxisRaw("Vertical");
-            transform.Translate(speedPlayer * Time.deltaTime * new Vector3(axisVertical, 0, 0));*/
-            MovePlayer3D();
-            RotatePlayer3D();
-        }
-    }
-    private void MovePlayer3D()
-    {
-        float axisVertical = Input.GetAxisRaw("Vertical");
-        transform.Translate(speedPlayer * Time.deltaTime * new Vector3(axisVertical, 0, 0));
-    }
-    private void RotatePlayer3D()
-    {
-        float axisHorizontal = Input.GetAxisRaw("Horizontal");
-        transform.Rotate(Vector3.up, axisHorizontal * speedToRotate * Time.deltaTime);
-    }
-    private void MovePlayerX2D(float axisHorizontal)
-    {
-            transform.Translate(speedPlayer * Time.deltaTime * new Vector3(axisHorizontal, 0, 0));
-            if (axisHorizontal == 1)
-            {
-                RotatePlayer2D(90, Vector3.up);
-            }
-            else if (axisHorizontal == -1)
-            {
-                RotatePlayer2D(90, Vector3.down);
+                collision.gameObject.transform.position = wallRandPosition;
+                collision.gameObject.transform.rotation = Quaternion.Euler(wallRandRotation);
+                timer = 0;
             }
         }
-
-    private void MovePlayerZ2D(float axisHorizontal) { 
-        transform.Translate(speedPlayer * Time.deltaTime * new Vector3(0, 0, -axisHorizontal));
-        if (axisHorizontal == 1)
-        {
-            RotatePlayer2D(180, Vector3.up);
-        }
-        else if (axisHorizontal == -1)
-        {
-            RotatePlayer2D(0, Vector3.up);
-        }
     }
-
-    private void RotatePlayer2D(float angle, Vector3 direction)
-    {
-        player.transform.rotation = Quaternion.AngleAxis(angle, direction);
-    }
-
 }
